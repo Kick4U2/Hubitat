@@ -4,6 +4,7 @@ Version 2020.08.16
 Release Notes:
 - Reduced whitespace
 - Removed extra capabilities
+- Removed moving attribute (windowShade comes with opening and closing attributes)
 - Cleaned voltage attribute
 - Cleaned parse function
 
@@ -29,7 +30,7 @@ metadata {
 		capability "WindowShade"
 		command  "stop"
 		command  "toggle"
-        attribute "lastDirection", "enum"
+		attribute "lastDirection", "enum"
 		attribute "position", "int"
 		attribute "voltage","int"
 	}
@@ -71,7 +72,7 @@ def toggle() {
 			open()
 			break;
 		case "partially open":
-        if (device.currentValue("lastDirection") == "true") {
+        		if (device.currentValue("lastDirection") == "true") {
 				close()
 			} else {
 				open()
