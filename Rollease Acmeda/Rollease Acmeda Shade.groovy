@@ -1,6 +1,6 @@
 /* 
 
-Version 2020.08.21.1
+Version 2020.08.16
 Release Notes:
 - Reduced whitespace
 - Removed extra capabilities
@@ -12,7 +12,7 @@ Revision History
 
 Version 2020.06.08.01
 Release Notes:
-- Added "opening" and "closing" states to the windowShade attribute
+- Added "closing", "opening" and "partially open" states to the windowShade attribute
 - Added "toggle" command
 
 Version 2020.03.30 
@@ -29,13 +29,9 @@ metadata {
 		capability "WindowShade"
 		command  "stop"
 		command  "toggle"
-		attribute "open", "bool"
-		attribute "closed", "bool"
+        attribute "lastDirection", "enum"
 		attribute "position", "int"
-		attribute "speed", "int"
-		attribute "moving","bool"
 		attribute "voltage","int"
-		attribute "speed","int"
 	}
 	preferences {
 		input ("motorAddress", "STRING", title: "Motor Address", description: "", defaultValue: "000", required: true, displayDuringSetup: true )
@@ -75,10 +71,10 @@ def toggle() {
 			open()
 			break;
 		case "partially open":
-			if (state.lastDirection == "closing") {
-				open()
-			} else {
+        if (device.currentValue("lastDirection") == "true") {
 				close()
+			} else {
+				open()
 			}
 			break;
 		default:
@@ -108,17 +104,16 @@ def parse(String msg) {
 			positionUpdated(position)
 			break;
 		case "m":
-			sendEvent(name: "moving", value: true)
 			positionStr = msg.substring(5, 8)
 			targetPosition = 100 - Integer.parseInt(positionStr)
 			currentPosition = device.currentValue("position")
 			if (targetPosition > currentPosition) {
 				sendEvent(name: "windowShade", value: "opening")
-				state.lastDirection = "opening"
+                sendEvent(name: "lastDirection", value: true)
 			}
 			if (targetPosition < currentPosition) {
 				sendEvent(name: "windowShade", value: "closing")
-				state.lastDirection = "closing"
+                sendEvent(name: "lastDirection", value: false)
 			}
 			break;
 		case "p":
@@ -134,20 +129,13 @@ def parse(String msg) {
 def positionUpdated(position) {
 	logDebug "Position Updated: ${position}"
 	if (position == 100) {
-		sendEvent(name: "open", value: true)
-		sendEvent(name: "closed", value: false)
 		sendEvent(name: "windowShade", value: "open")
 	} else if (position == 0) {
-		sendEvent(name: "closed", value: true)
-		sendEvent(name: "open", value: false)
 		sendEvent(name: "windowShade", value: "closed")
 	} else {
-		sendEvent(name: "closed", value: false)
-		sendEvent(name: "open", value: false)
 		sendEvent(name: "windowShade", value: "partially open")
 	}
 	sendEvent(name: "position", value: position)
-	sendEvent(name: "moving", value: false)
 }
 
 def requestStatus() {
