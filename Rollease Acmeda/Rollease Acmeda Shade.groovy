@@ -1,6 +1,6 @@
 /* 
 
-Version 2020.08.16
+Version 2020.08.21
 Release Notes:
 - Reduced whitespace
 - Removed extra capabilities
