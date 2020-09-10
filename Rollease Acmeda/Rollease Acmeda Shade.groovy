@@ -26,6 +26,7 @@ metadata {
 		capability "Actuator"
 		capability "Initialize"
 		capability "Refresh"
+		capability "Switch"
 		capability "VoltageMeasurement"
 		capability "WindowShade"
 		command  "stop"
@@ -41,6 +42,14 @@ metadata {
 }
 
 def initialize() { logDebug "Motor Address: ${settings?.motorAddress}" }
+
+def on() {
+	open()
+}
+
+def off() {
+	close()
+}
 
 def open() {
 	logDebug "Opening Shade"
