@@ -26,13 +26,22 @@ metadata {
 		capability "Actuator"
 		capability "Initialize"
 		capability "Refresh"
+        capability "Switch"
 		capability "VoltageMeasurement"
 		capability "WindowShade"
+		command  "jogUp"
+		command  "jogDown"
+		command  "jogDistanceUp"
+		command  "jogDistanceDown"
+		command  "jogSpeedUp"
+		command  "jogSpeedDown"
+		command  "continuousSpeedUp"
+		command  "continuousSpeedDown"
 		command  "stop"
 		command  "toggle"
 		attribute "lastDirection", "enum"
 		attribute "position", "int"
-		attribute "voltage","int"
+		attribute "voltage", "int"
 	}
 	preferences {
 		input ("motorAddress", "STRING", title: "Motor Address", description: "", defaultValue: "000", required: true, displayDuringSetup: true )
@@ -42,14 +51,62 @@ metadata {
 
 def initialize() { logDebug "Motor Address: ${settings?.motorAddress}" }
 
+def off() {
+    close()
+}
+
+def on() {
+    open()
+}
+
 def open() {
-	logDebug "Opening Shade"
+	logDebug "Opening Shade Up"
 	sendCommand("m","000")
 }
 
 def close() {
-	logDebug "Closing Shade"
+	logDebug "Closing Shade Down"
 	sendCommand("m","100")
+}
+
+def jogUp() {
+	logDebug "Jogging Shade Open/Up"
+	sendCommand("oA","")
+}
+
+def jogDown() {
+	logDebug "Jogging Shade Close/Down"
+	sendCommand("cA","")
+}
+
+def jogDistanceUp() {
+	logDebug "Increase Jog Distance By One Unit"
+	sendCommand("pGd+","")
+}
+
+def jogDistanceDown() {
+	logDebug "Decrease Jog Distance By One Unit"
+	sendCommand("pGd-","")
+}
+
+def jogSpeedUp() {
+	logDebug "Increase Jog Distance By One Unit"
+	sendCommand("pGr+","")
+}
+
+def jogSpeedDown() {
+	logDebug "Decrease Jog Distance By One Unit"
+	sendCommand("pGr-","")
+}
+
+def continuousSpeedUp() {
+	logDebug "Increase Continuous Distance By One Unit"
+	sendCommand("pGc+","")
+}
+
+def continuousSpeedDown() {
+	logDebug "Decrease Continuous Distance By One Unit"
+	sendCommand("pGc-","")
 }
 
 def stop() {
@@ -118,12 +175,34 @@ def parse(String msg) {
 			}
 			break;
 		case "p":
-			if (msg.substring(5, 7) == "Vc") {
-				voltageStr = msg.substring(7, 12)
-				voltageStr = Integer.parseInt(voltageStr) / 100
-				sendEvent(name: "voltage", value: voltageStr)
-			}
+			switch (msg.substring(5, 7)) {
+				case "Vc":
+					voltageStr = msg.substring(7, 12)
+					voltageStr = Integer.parseInt(voltageStr) / 100
+					sendEvent(name: "voltage", value: voltageStr)
+					break;
+				case "Gd":
+					switch (msg.substring(7, 8)) {
+						case "+":
+							logDebug "Received: Increase jog distance by one unit"
+							break;
+						case "-":
+							logDebug "Received: Decrease jog distance by one unit"
+							break;
+					}
+					break;
+				case "Gr":
+					switch (msg.substring(7, 8)) {
+						case "+":
+							logDebug "Received: Increase jog distance by one unit"
+							break;
+						case "-":
+							logDebug "Received: Decrease jog distance by one unit"
+							break;
+					}
+					break;
 			break;
+			}
 	}
 }
 
